@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Autocorrelation Examples</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 20px;
+            color: #333;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+        }
+        
+        .title {
+            text-align: center;
+            font-size: 2.5em;
+            font-weight: bold;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 30px;
+        }
+        
+        .example-section {
+            margin-bottom: 50px;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        
+        .example-title {
+            font-size: 1.8em;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #4a5568;
+        }
+        
+        .description {
+            font-size: 1.1em;
+            margin-bottom: 20px;
+            line-height: 1.6;
+            color: #2d3748;
+        }
+        
+        .chart-container {
+            display: flex;
+            gap: 20px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        
+        .chart-wrapper {
+            flex: 1;
+            min-width: 300px;
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .chart-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-align: center;
+            color: #4a5568;
+        }
+        
+        .interpretation {
+            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 15px;
+            border-left: 5px solid #667eea;
+        }
+        
+        .interpretation h4 {
+            margin-top: 0;
+            color: #2d3748;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .control-group label {
+            font-weight: bold;
+            color: #4a5568;
+        }
+        
+        .control-group input {
+            padding: 8px 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        
+        .control-group button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: transform 0.2s;
+        }
+        
+        .control-group button:hover {
+            transform: translateY(-2px);
+        }
+        
+        .stats-box {
+            background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%);
+            border-radius: 10px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        
+        .stats-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #2d3748;
+        }
+        
+        canvas {
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="title">Real-World Autocorrelation Examples</div>
+        
+        <!-- Stock Price Example -->
+        <div class="example-section">
+            <div class="example-title">📈 Stock Price Returns</div>
+            <div class="description">
+                Daily stock returns show <strong>low autocorrelation</strong> - today's return doesn't strongly predict tomorrow's. This is why "beating the market" is so difficult!
+            </div>
+            
+            <div class="chart-container">
+                <div class="chart-wrapper">
+                    <div class="chart-title">Daily Returns Time Series</div>
+                    <canvas id="stockChart" width="400" height="200"></canvas>
+                </div>
+                <div class="chart-wrapper">
+                    <div class="chart-title">Autocorrelation Function</div>
+                    <canvas id="stockACF" width="400" height="200"></canvas>
+                </div>
+            </div>
+            
+            <div class="interpretation">
+                <h4>What This Tells Us:</h4>
+                <p><strong>Autocorrelations near zero:</strong> Returns are essentially random - no predictable pattern. This supports the "random walk" theory of stock prices.</p>
+                <p><strong>Why this makes sense:</strong> If patterns existed, traders would exploit them until they disappeared. The market is efficient at removing predictable patterns.</p>
+            </div>
+        </div>
+        
+        <!-- Temperature Example -->
+        <div class="example-section">
+            <div class="example-title">🌡️ Daily Temperature</div>
+            <div class="description">
+                Temperature shows <strong>strong positive autocorrelation</strong> at short lags (today predicts tomorrow) and <strong>seasonal patterns</strong> at yearly intervals.
+            </div>
+            
+            <div class="chart-container">
+                <div class="chart-wrapper">
+                    <div class="chart-title">Daily Temperature (°F)</div>
+                    <canvas id="tempChart" width="400" height="200"></canvas>
+                </div>
+                <div class="chart-wrapper">
+                    <div class="chart-title">Autocorrelation Function</div>
+                    <canvas id="tempACF" width="400" height="200"></canvas>
+                </div>
+            </div>
+            
+            <div class="interpretation">
+                <h4>What This Tells Us:</h4>
+                <p><strong>High correlation at lag 1:</strong> Today's temperature strongly predicts tomorrow's (weather persistence).</p>
+                <p><strong>Seasonal spike around lag 365:</strong> Temperature one year ago predicts today's temperature due to seasonal cycles.</p>
+                <p><strong>Gradual decline:</strong> Predictive power decreases as we go further into the future.</p>
+            </div>
+        </div>
+        
+        <!-- Sales Example -->
+        <div class="example-section">
+            <div class="example-title">🛒 Retail Sales</div>
+            <div class="description">
+                Monthly retail sales show <strong>trend and seasonality</strong> - high autocorrelation due to economic trends plus spikes at seasonal intervals.
+            </div>
+            
+            <div class="controls">
+                <div class="control-group">
+                    <label>Trend Strength:</label>
+                    <input type="range" id="trendSlider" min="0" max="5" value="2" step="0.1">
+                    <span id="trendValue">2.0</span>
+                </div>
+                <div class="control-group">
+                    <label>Seasonality:</label>
+                    <input type="range" id="seasonSlider" min="0" max="20" value="10" step="1">
+                    <span id="seasonValue">10</span>
+                </div>
+                <div class="control-group">
+                    <button onclick="updateSales()">Update Sales Data</button>
+                </div>
+            </div>
+            
+            <div class="chart-container">
+                <div class="chart-wrapper">
+                    <div class="chart-title">Monthly Sales ($000s)</div>
+                    <canvas id="salesChart" width="400" height="200"></canvas>
+                </div>
+                <div class="chart-wrapper">
+                    <div class="chart-title">Autocorrelation Function</div>
+                    <canvas id="salesACF" width="400" height="200"></canvas>
+                </div>
+            </div>
+            
+            <div class="stats-box">
+                <div class="stats-title">Key Insights:</div>
+                <div id="salesStats"></div>
+            </div>
+            
+            <div class="interpretation">
+                <h4>What This Tells Us:</h4>
+                <p><strong>High correlations at all lags:</strong> Due to underlying growth trend - sales this month predict sales far into the future.</p>
+                <p><strong>Spikes at lags 12, 24, 36:</strong> Seasonal patterns repeat every 12 months (holiday shopping, back-to-school, etc.).</p>
+                <p><strong>Adjust the sliders:</strong> See how trend vs. seasonality affects the autocorrelation pattern!</p>
+            </div>
+        </div>
+        
+        <!-- Heart Rate Example -->
+        <div class="example-section">
+            <div class="example-title">💓 Heart Rate Variability</div>
+            <div class="description">
+                Heart rate shows <strong>oscillating patterns</strong> with breathing and longer cycles, creating both positive and negative autocorrelations.
+            </div>
+            
+            <div class="chart-container">
+                <div class="chart-wrapper">
+                    <div class="chart-title">Heart Rate (BPM)</div>
+                    <canvas id="heartChart" width="400" height="200"></canvas>
+                </div>
+                <div class="chart-wrapper">
+                    <div class="chart-title">Autocorrelation Function</div>
+                    <canvas id="heartACF" width="400" height="200"></canvas>
+                </div>
+            </div>
+            
+            <div class="interpretation">
+                <h4>What This Tells Us:</h4>
+                <p><strong>Oscillating pattern:</strong> Positive and negative correlations alternate, showing cyclical behavior.</p>
+                <p><strong>Breathing cycle:</strong> Heart rate speeds up and slows down with breathing (respiratory sinus arrhythmia).</p>
+                <p><strong>Damped oscillations:</strong> The pattern weakens over time as other factors introduce noise.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables for charts
+        let stockChart, stockACF, tempChart, tempACF, salesChart, salesACF, heartChart, heartACF;
+        
+        // Utility functions
+        function generateStockReturns(n = 200) {
+            const returns = [];
+            let price = 100;
+            for (let i = 0; i < n; i++) {
+                const return_pct = (Math.random() - 0.5) * 4; // ±2% daily returns
+                returns.push(return_pct);
+                price *= (1 + return_pct/100);
+            }
+            return returns;
+        }
+        
+        function generateTemperature(n = 365) {
+            const temp = [];
+            for (let i = 0; i < n; i++) {
+                const seasonal = 20 * Math.sin(2 * Math.PI * i / 365) + 60; // Seasonal component
+                const noise = (Math.random() - 0.5) * 10; // Daily variation
+                const persistence = i > 0 ? 0.7 * (temp[i-1] - seasonal) : 0; // Persistence
+                temp.push(seasonal + persistence + noise);
+            }
+            return temp;
+        }
+        
+        function generateSales(n = 60, trend = 2, seasonality = 10) {
+            const sales = [];
+            let base = 100;
+            for (let i = 0; i < n; i++) {
+                const trendComponent = trend * i;
+                const seasonal = seasonality * Math.sin(2 * Math.PI * i / 12);
+                const noise = (Math.random() - 0.5) * 5;
+                sales.push(base + trendComponent + seasonal + noise);
+            }
+            return sales;
+        }
+        
+        function generateHeartRate(n = 100) {
+            const hr = [];
+            const baseRate = 70;
+            for (let i = 0; i < n; i++) {
+                const breathing = 5 * Math.sin(2 * Math.PI * i / 20); // Breathing cycle
+                const longCycle = 3 * Math.sin(2 * Math.PI * i / 50); // Longer cycle
+                const noise = (Math.random() - 0.5) * 2;
+                hr.push(baseRate + breathing + longCycle + noise);
+            }
+            return hr;
+        }
+        
+        function calculateAutocorrelation(data, maxLag = 30) {
+            const n = data.length;
+            const mean = data.reduce((a, b) => a + b) / n;
+            const variance = data.reduce((sum, x) => sum + Math.pow(x - mean, 2), 0) / n;
+            
+            const acf = [];
+            for (let lag = 0; lag <= maxLag; lag++) {
+                let sum = 0;
+                let count = 0;
+                for (let i = 0; i < n - lag; i++) {
+                    sum += (data[i] - mean) * (data[i + lag] - mean);
+                    count++;
+                }
+                acf.push(count > 0 ? (sum / count) / variance : 0);
+            }
+            return acf;
+        }
+        
+        function createTimeSeriesChart(ctx, data, label, color) {
+            return new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: Array.from({length: data.length}, (_, i) => i),
+                    datasets: [{
+                        label: label,
+                        data: data,
+                        borderColor: color,
+                        backgroundColor: color + '20',
+                        borderWidth: 2,
+                        fill: false,
+                        tension: 0.1,
+                        pointRadius: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        x: { title: { display: true, text: 'Time' } },
+                        y: { title: { display: true, text: label } }
+                    },
+                    elements: {
+                        point: { radius: 0 }
+                    }
+                }
+            });
+        }
+        
+        function createACFChart(ctx, acf, title) {
+            return new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: Array.from({length: acf.length}, (_, i) => i),
+                    datasets: [{
+                        label: 'Autocorrelation',
+                        data: acf,
+                        backgroundColor: acf.map(val => val > 0 ? '#4299e1' : '#e53e3e'),
+                        borderColor: acf.map(val => val > 0 ? '#2b6cb0' : '#c53030'),
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        x: { title: { display: true, text: 'Lag' } },
+                        y: { 
+                            title: { display: true, text: 'Correlation' },
+                            min: -1,
+                            max: 1
+                        }
+                    }
+                }
+            });
+        }
+        
+        function updateSales() {
+            const trend = parseFloat(document.getElementById('trendSlider').value);
+            const seasonality = parseFloat(document.getElementById('seasonSlider').value);
+            
+            document.getElementById('trendValue').textContent = trend.toFixed(1);
+            document.getElementById('seasonValue').textContent = seasonality.toFixed(0);
+            
+            const salesData = generateSales(60, trend, seasonality);
+            const salesACFData = calculateAutocorrelation(salesData, 30);
+            
+            // Update charts
+            salesChart.data.datasets[0].data = salesData;
+            salesChart.update();
+            
+            salesACF.data.datasets[0].data = salesACFData;
+            salesACF.data.datasets[0].backgroundColor = salesACFData.map(val => val > 0 ? '#4299e1' : '#e53e3e');
+            salesACF.update();
+            
+            // Update stats
+            const maxACF = Math.max(...salesACFData.slice(1, 13));
+            const lag12ACF = salesACFData[12] || 0;
+            document.getElementById('salesStats').innerHTML = `
+                <strong>Max ACF (lags 1-12):</strong> ${maxACF.toFixed(3)}<br>
+                <strong>Seasonal ACF (lag 12):</strong> ${lag12ACF.toFixed(3)}<br>
+                <strong>Trend influence:</strong> ${trend > 1 ? 'Strong' : trend > 0.5 ? 'Moderate' : 'Weak'}<br>
+                <strong>Seasonal influence:</strong> ${seasonality > 15 ? 'Strong' : seasonality > 5 ? 'Moderate' : 'Weak'}
+            `;
+        }
+        
+        // Initialize all charts
+        window.onload = function() {
+            // Stock example
+            const stockData = generateStockReturns(200);
+            const stockACFData = calculateAutocorrelation(stockData, 20);
+            
+            stockChart = createTimeSeriesChart(
+                document.getElementById('stockChart').getContext('2d'),
+                stockData,
+                'Daily Return (%)',
+                '#e53e3e'
+            );
+            
+            stockACF = createACFChart(
+                document.getElementById('stockACF').getContext('2d'),
+                stockACFData,
+                'Stock Returns ACF'
+            );
+            
+            // Temperature example
+            const tempData = generateTemperature(365);
+            const tempACFData = calculateAutocorrelation(tempData, 400);
+            
+            tempChart = createTimeSeriesChart(
+                document.getElementById('tempChart').getContext('2d'),
+                tempData,
+                'Temperature (°F)',
+                '#4299e1'
+            );
+            
+            tempACF = createACFChart(
+                document.getElementById('tempACF').getContext('2d'),
+                tempACFData,
+                'Temperature ACF'
+            );
+            
+            // Sales example
+            const salesData = generateSales(60, 2, 10);
+            const salesACFData = calculateAutocorrelation(salesData, 30);
+            
+            salesChart = createTimeSeriesChart(
+                document.getElementById('salesChart').getContext('2d'),
+                salesData,
+                'Sales ($000s)',
+                '#38a169'
+            );
+            
+            salesACF = createACFChart(
+                document.getElementById('salesACF').getContext('2d'),
+                salesACFData,
+                'Sales ACF'
+            );
+            
+            // Heart rate example
+            const heartData = generateHeartRate(100);
+            const heartACFData = calculateAutocorrelation(heartData, 50);
+            
+            heartChart = createTimeSeriesChart(
+                document.getElementById('heartChart').getContext('2d'),
+                heartData,
+                'Heart Rate (BPM)',
+                '#ed64a6'
+            );
+            
+            heartACF = createACFChart(
+                document.getElementById('heartACF').getContext('2d'),
+                heartACFData,
+                'Heart Rate ACF'
+            );
+            
+            // Initialize sales stats
+            updateSales();
+            
+            // Add event listeners
+            document.getElementById('trendSlider').addEventListener('input', updateSales);
+            document.getElementById('seasonSlider').addEventListener('input', updateSales);
+        };
+    </script>
+</body>
+</html>
